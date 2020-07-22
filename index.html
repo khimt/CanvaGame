@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Canvas Game</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+  <button onclick="playVideo()" type="button">Play with Video</button>
+  <button onclick="playImage()" type="button">Play with Image</button>
+  <p>Start/Reset game: Space</p>
+  <p>Pause: A</p>
+  <p>Resume: Z</p>
+  <p>Touches de jeu: D, F, J et K</p>
+  <p>désactivez la vidéo si les FPS ne sont pas fixe a environ 60FPS, si ils sont fixe sur une autre valeur ou si il y a un problème prévenez moi :)</p>
+  <div>
+    <video id="video" src="./animeSong.mp4" type="video/mp4" hidden>
+      Your browser does not support this Video
+    </a>
+  </div>
+  <div>
+    <img id="image" src="./animeIMG2.png" alt="Your browser does not support this Image" hidden>
+  </div>
+  <div>
+    <canvas id="canvas" width="1080" height="720" style="border:1px solid lightgrey;">
+      Your browser does not support the HTML5 canvas tag.
+    </canvas>
+  </div>
+</body>
+</html>
