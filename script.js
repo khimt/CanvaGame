@@ -40,10 +40,14 @@ var firstLoop = 1875.5;
 var timerLoop = 2307.7;
 var pause = false;
 
-var menu = true;
+var leaderBoard = false;
+var firstPlayer;
+var secondPlayer;
+var thirdPlayer;
 
 //hud
 var scoreHud;
+var lastScore = [false, 0, "---", "---", "--", "-", "-"];
 
 //control
 var rightPressed = false;
@@ -51,6 +55,9 @@ var rightMidPressed = false;
 var leftMidPressed = false;
 var leftPressed = false;
 
+var menu = true;
+var keyController = ["d", "f", "j", "k"];
+var keySave;
 var changeKey = false;
 var keySelected;
 
@@ -67,10 +74,32 @@ function startGame() {
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
 
-    rightButton = new component(640, 630, colorGreen, 100, 40, "k");
-    rightMidButton = new component(540, 630, colorGreen, 100, 40, "j");
-    leftMidButton = new component(440, 630, colorGreen, 100, 40, "f");
-    leftButton = new component(340, 630, colorGreen, 100, 40, "d");
+    keySave = JSON.parse(localStorage.getItem('keySave'));
+    firstPlayer = JSON.parse(localStorage.getItem('firstPlayer'));
+    secondPlayer = JSON.parse(localStorage.getItem('secondPlayer'));
+    thirdPlayer = JSON.parse(localStorage.getItem('thirdPlayer'));
+
+    if (keySave) {
+        keyController[0] = keySave[0];
+        keyController[1] = keySave[1];
+        keyController[2] = keySave[2];
+        keyController[3] = keySave[3];
+    }
+
+    if (!firstPlayer) {
+        firstPlayer = [0, "---", "---", "--", "-", "-"];
+    }
+    if (!secondPlayer) {
+        secondPlayer = [0, "---", "---", "--", "-", "-"];
+    }
+    if (!thirdPlayer) {
+        thirdPlayer = [0, "---", "---", "--", "-", "-"];
+    }
+
+    rightButton = new component(640, 630, colorGreen, 100, 40, keyController[3]);
+    rightMidButton = new component(540, 630, colorGreen, 100, 40, keyController[2]);
+    leftMidButton = new component(440, 630, colorGreen, 100, 40, keyController[1]);
+    leftButton = new component(340, 630, colorGreen, 100, 40, keyController[0]);
 
     scoreHud = new hud(0, 10, 0, 0, 0, 0, 0, 0);
 
@@ -116,6 +145,65 @@ function update() {
         pause = false;
         begin = false;
     }
+
+    if (video.currentTime >= 161) {
+        if (scoreHud.score >= thirdPlayer[0]) {
+            thirdPlayer[0] = scoreHud.score;
+            thirdPlayer[1] = scoreHud.comboMax;
+            thirdPlayer[2] = scoreHud.perfect;
+            thirdPlayer[3] = scoreHud.medium;
+            thirdPlayer[4] = scoreHud.bad;
+            thirdPlayer[5] = scoreHud.fail;
+            localStorage.setItem('thirdPlayer', JSON.stringify(thirdPlayer));
+        }
+        if (scoreHud.score >= secondPlayer[0]) {
+            thirdPlayer[0] = secondPlayer[0];
+            thirdPlayer[1] = secondPlayer[1];
+            thirdPlayer[2] = secondPlayer[2];
+            thirdPlayer[3] = secondPlayer[3];
+            thirdPlayer[4] = secondPlayer[4];
+            thirdPlayer[5] = secondPlayer[5];
+
+            secondPlayer[0] = scoreHud.score;
+            secondPlayer[1] = scoreHud.comboMax;
+            secondPlayer[2] = scoreHud.perfect;
+            secondPlayer[3] = scoreHud.medium;
+            secondPlayer[4] = scoreHud.bad;
+            secondPlayer[5] = scoreHud.fail;
+            localStorage.setItem('thirdPlayer', JSON.stringify(thirdPlayer));
+            localStorage.setItem('secondPlayer', JSON.stringify(secondPlayer));
+        }
+        if (scoreHud.score >= firstPlayer[0]) {
+            secondPlayer[0] = firstPlayer[0];
+            secondPlayer[1] = firstPlayer[1];
+            secondPlayer[2] = firstPlayer[2];
+            secondPlayer[3] = firstPlayer[3];
+            secondPlayer[4] = firstPlayer[4];
+            secondPlayer[5] = firstPlayer[5];
+
+            firstPlayer[0] = scoreHud.score;
+            firstPlayer[1] = scoreHud.comboMax;
+            firstPlayer[2] = scoreHud.perfect;
+            firstPlayer[3] = scoreHud.medium;
+            firstPlayer[4] = scoreHud.bad;
+            firstPlayer[5] = scoreHud.fail;
+            localStorage.setItem('secondPlayer', JSON.stringify(secondPlayer));
+            localStorage.setItem('firstPlayer', JSON.stringify(firstPlayer));
+        }
+
+        lastScore[0] = true;
+        lastScore[1] = scoreHud.score;
+        lastScore[2] = scoreHud.comboMax;
+        lastScore[3] = scoreHud.perfect;
+        lastScore[4] = scoreHud.medium;
+        lastScore[5] = scoreHud.bad;
+        lastScore[6] = scoreHud.fail;
+        resetGame();
+        pauseGame();
+        leaderBoard = true;
+        pause = false;
+        begin = false;
+    }
 }
 
 function draw(){
@@ -132,8 +220,10 @@ function draw(){
 
     if (menu) {
         drawMenu();
+        if (leaderBoard) {
+            drawLeaderboard();
+        }
     }
-    
 
     //background
     context.fillStyle = colorGrey;
@@ -169,17 +259,31 @@ function draw(){
     context.fillRect(710, 645, 30, 6);
 
     // HUD
-    context.font = '25px Arial';
+    context.font = '40px Arial';
     context.fillStyle = colorRed;
-    context.fillText("FPS: " + fps, 10, 30);
-    context.fillText("SCORE: " + scoreHud.score, 10, 60);
-    context.fillText("LIFE: " + scoreHud.life, 10, 90);
-    context.fillText("FAIL: " + scoreHud.fail, 10, 120);
-    context.fillText("COMBO: " + scoreHud.combo, 10, 150);
-    context.fillText("COMBO MAX: " + scoreHud.comboMax, 10, 180);
-    context.fillText("PERFECT: " + scoreHud.perfect, 10, 210);
-    context.fillText("MEDIUM: " + scoreHud.medium, 10, 240);
-    context.fillText("BAD: " + scoreHud.bad, 10, 270);
+    context.fillText(fps, 10, 40);
+    context.fillText(scoreHud.score, 800, 40);
+    context.fillText(scoreHud.life, 290, 663);
+    context.fillText(scoreHud.combo, 750, 663);
+
+    if (lastScore[0]) {
+        context.fillStyle = colorBlack;
+        context.fillRect(340, 300, 400, 150);
+
+        context.font = '25px Arial';
+        context.fillStyle = colorWhite;
+        context.fillRect(340, 300, 400, 5);
+        context.fillRect(340, 450, 400, 5);
+        context.fillRect(340 , 300, 5, 150);
+        context.fillRect(735 , 300, 5, 150);
+
+        context.fillText("SCORE: " + lastScore[1] + " (x" + lastScore[2] + ")", 360, 340);
+        context.fillText("NOTES: " + lastScore[3] + " / " + lastScore[4] + " / " + lastScore[5], 360, 370);
+        context.fillText("FAIL: " + lastScore[6], 360, 400);
+
+        context.font = '15px Arial';
+        context.fillText("PRESS SPACE TO CONTINUE", 440, 430);
+    }
 }
 
 function drawMenu() {
@@ -218,25 +322,65 @@ function drawMenu() {
     context.fillText("KEY 4: " + rightButton.key, 850, 300);
 }
 
+function drawLeaderboard() {
+
+    context.fillStyle = colorBlack;
+    context.fillRect(0, 100, 280, 520);
+
+    context.fillStyle = colorWhite;
+    context.fillRect(0, 100, 280, 5);
+    context.fillRect(0, 620, 280, 5);
+    context.fillRect(275 , 100, 5, 520);
+
+    context.font = '20px Arial';
+    context.fillStyle = colorWhite;
+    context.fillText("LEADERBOARD", 20, 150);
+    context.fillText("-----------", 20, 180);
+    context.fillText("FIRST: " + firstPlayer[0] + " (x" + firstPlayer[1] + ")", 20, 210);
+    context.fillText("NOTES: " + firstPlayer[2] + " / " + firstPlayer[3] + " / " + firstPlayer[4], 20, 240);
+    context.fillText("FAIL: " + firstPlayer[5], 20, 270);
+    context.fillText("-----------", 20, 300);
+    context.fillText("SECOND: " + secondPlayer[0] + " (x" + secondPlayer[1] + ")", 20, 330);
+    context.fillText("NOTES: " + secondPlayer[2] + " / " + secondPlayer[3] + " / " + secondPlayer[4], 20, 360);
+    context.fillText("FAIL: " + secondPlayer[5], 20, 390);
+    context.fillText("-----------", 20, 420);
+    context.fillText("THIRD: " + thirdPlayer[0] + " (x" + thirdPlayer[1] + ")", 20, 450);
+    context.fillText("NOTES: " + thirdPlayer[2] + " / " + thirdPlayer[3] + " / " + thirdPlayer[4], 20, 480);
+    context.fillText("FAIL: " + thirdPlayer[5], 20, 510);
+}
+
 function keyDownHandler(e) {
-    if (changeKey) {
-        if (e.key != "r" && e.key != " " && e.key != "a" && e.key != "z") {
+    if (lastScore[0]) {
+        if (e.key == " ") {
+            lastScore[0] = false;
+        }
+    }
+    else if (changeKey) {
+        if (e.key != "r" && e.key != " " && e.key != "a" && e.key != "z" && e.key != rightButton.key && e.key != rightMidButton.key && e.key != leftMidButton.key && e.key != leftButton.key) {
             if (keySelected == "right") {
                 rightButton.key = e.key;
                 rightButton.color = colorGreen;
+                keyController[3] = e.key;
+                localStorage.setItem('keySave', JSON.stringify(keyController));
             }
             else if (keySelected == "rightMid") {
                 rightMidButton.key = e.key;
                 rightMidButton.color = colorGreen;
+                keyController[2] = e.key;
+                localStorage.setItem('keySave', JSON.stringify(keyController));
             }
             else if (keySelected == "leftMid") {
                 leftMidButton.key = e.key;
                 leftMidButton.color = colorGreen;
+                keyController[1] = e.key;
+                localStorage.setItem('keySave', JSON.stringify(keyController));
             }
             else if (keySelected == "left") {
                 leftButton.key = e.key;
                 leftButton.color = colorGreen;
-            }
+                keyController[0] = e.key;
+                localStorage.setItem('keySave', JSON.stringify(keyController));
+            }   
             changeKey = false;
         }
         if (e.key == " ") {
@@ -320,6 +464,14 @@ function keyDownHandler(e) {
             }
             else {
                 playingVideo = true;
+            }
+        }
+        else if(e.key == "z") {
+            if (leaderBoard) {
+                leaderBoard = false;
+            }
+            else {
+                leaderBoard = true;
             }
         }
     }
